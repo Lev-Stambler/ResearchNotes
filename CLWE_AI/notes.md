@@ -11,12 +11,9 @@ $$
 
 CLWE (continuous learning with errors) is the continuous equivalent of learning with errors. At a _high_ level we have two equivalent hardness assumptions (decision and search version):
 
-$$
-\newcommand{\Var}{\texttt{Var}}
-$$
 
 $$
-  C_i \Var
+  C_i \Var, \innerproduct{a, b}
 $$
 
 
