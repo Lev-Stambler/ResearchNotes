@@ -33,6 +33,30 @@ function replaceLatexAlignWithKatex(input) {
   return replaced;
 }
 
+function replaceLatexAlignStarWithKatex(input) {
+  const alignRegex = /\\begin{align\*}([\s\S]*?)\\end{align\*}/g;
+
+  const replaced = input.replace(
+    alignRegex,
+    (match, alignedEquationsContent) => {
+      // Split the aligned content into separate lines
+      const lines = alignedEquationsContent.trim().split("\\\\");
+      // Add tags and double dollar signs to each line
+      const taggedLines = lines.map((line) => {
+        // Only add a tag if the line is not empty
+        if (line.trim().length > 0) {
+          return `$$\n${line.trim()} \n$$`;
+        }
+        return "";
+      });
+      // Join the lines back together, ensuring that each equation is on a new line
+      return taggedLines.join("\n");
+    }
+  );
+
+  return replaced;
+}
+
 function replaceLatexEquationsWithKatex(input) {
   let equationNumber = 1;
   const equationRegex = /\\begin{equation}([\s\S]*?)\\end{equation}/g;
@@ -141,7 +165,7 @@ function parseCommand(commandString) {
  * @param {string} file_path
  * @returns
  */
-const createPdf = (file_path, log=true) => {
+const createPdf = (file_path, log = true) => {
   return (async () => {
     const p = path.join(__dirname, "../", file_path);
     const preamblePath = path.join(__dirname, "../", "preamble.tex");
@@ -164,8 +188,8 @@ const createPdf = (file_path, log=true) => {
       throw new Error("File is not a markdown file");
     }
     const content = fs.readFileSync(p, "utf8");
-    const contentCleaned = replaceLatexAlignWithKatex(
-      replaceLatexEquationsWithKatex(content)
+    const contentCleaned = replaceLatexAlignStarWithKatex(
+      replaceLatexAlignWithKatex(replaceLatexEquationsWithKatex(content))
     );
     const html = `<!DOCTYPE html>
 <html>

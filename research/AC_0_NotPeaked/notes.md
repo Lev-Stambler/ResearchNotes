@@ -5,13 +5,97 @@ We can get non-trivial upper and lower bounds on the expectation of post-process
 - [On Polynomial Approximations to $\ACZ$](https://arxiv.org/pdf/1604.08121.pdf)
 	This paper will allow us to bound the output of the probabilistic polynomial to something **very** nice. Specifically,
 	we get that for any $\mathbf{x} \in \binSet^n$ and $\ACZ$ circuit of size $s$ and degree $d$, $|f(\mathbf{x})| \leq (\log s)^{O(d)} \log(1 / \eps)$! Because we can square $f$ without experiencing too much pain, we will assume that
-
 \begin{equation}
 0 \leq f(x) \leq (\log s)^{O(d)} \log(1 / \eps).
 \end{equation}
 
 - [Fast polynomial factorization and modular composition](http://users.cms.caltech.edu/~umans/papers/KU08-final.pdf)
 	This is quite a fascinating paper IMO and something that cryptographers are hoping to use (though the parameters there do not quite work out). The key part that we will focus on is **Section 4** (Fast multivariate multipoint evaluation (in any characteristic). Specifically, we only care about the MULTIMODULAR algorithm (on the bottom of page 12 in the box)
+
+
+Specifically, we have from the CRT (Chinese Remainder Theorem), given any $f(x)$ where $0 \leq f(x) \leq L$,
+
+\begin{align*}
+a_1 = f(x) \mod p_1 \\
+a_2 = f(x) \mod p_2 \\
+\;\;\vdots \\
+a_k = f(x) \mod p_k \\
+\end{align*}
+where $p_1 \cdot p_2 \dots \cdot p_k \geq L$. Note that $k \in O(\log L)$.
+
+Moreover, we can find fixed constants $\{M_i\}, \{K_i\}$ (TODO: please someone check me, from [Wikipedia](https://en.wikipedia.org/wiki/Chinese_remainder_theorem#:~:text=In%20mathematics%2C%20the%20Chinese%20remainder,are%20pairwise%20coprime%20(no%20two))) such that
+
+$$
+f(x) = \sum_{i \in [k]} a_i M_i N_i.
+$$
+
+Now, this is cool beans.
+
+Note that if we have the expectations for $a_i$ we can get the expectation for $f$!
+
+## Aside: Fixing non {0, 1} outputs of a polynomial g
+<!-- TODO: coefficient norm bound??? -->
+Say that we have a polynomial $g$ that outputs values in $\Z/p\Z$. Note that
+if $g \in \Z[X]$ but $g(x)$ is norm bounded by $L$, then we can assume that
+$g \in \Z/p\Z$ even if the coefficients are not in $\Z/p\Z$.
+<!-- TODO: check this above -->
+
+We want to get a polynomial $g'$ that outputs values in $\{0, 1\}$ and that $g(x) = g'(x)$ if $g(x) \in \binSet$.
+Seems easy enough right? Lets use a brute force technique to map all $g(x) > 1$ to $0$.
+
+$$
+g'(x) = \prod_{j \in \{0, \dots, p - 1\} \setminus \{1\}} (1 - j)^{-1} (g(x) - j).
+$$
+
+We can see that when $g(x) \neq 1$, we have $g'(x) = 0$. When $g(x) = 1$, then
+
+$$
+g'(x) = \prod_j (1 - j)^{-1} (1 - j) = 1.
+$$
+
+Another note is that this basically means that the total degree of $g'(x)$ is something like $(p - 1) \cdot \deg(g)$.
+
+## Back to the main show. Using the above and the CRT
+Note that if we want to use the above technique with $g'$ we will have a few issues.
+First, we need to calculate expectations over a polynomial in $\Z/p\Z$. I believe though that this should be possible (see the appendix). We just need to calculate the probability of overflow. This should be fine maybe?
+
+Second, and the larger problem, if our $p$ is $\text{poly}(\cdot)$ we are in trouble.
+If we want our $\eps$ to be super-polynomially small, then we need to do some tricks.
+
+### CRT and Unique Identification
+We can note that CRT guarantees us that there is a unique $b_1, \dots, b_k$ such that
+
+$$
+\sum_{i \in [k]} b_i M_i N_i = 1.
+$$
+
+So, for every $p_i$ reduced polynomial, $f_i$, we create a polynomial
+$f'_i$ such that $f'_i(x) = b_i$ if $f_i(x) = b_i$ and $f'_i(x) = 0$ otherwise.
+Note that this increases the degree of $f_i$ by $O(p) = O(\log L)$.
+
+### Lower Bounding the Expectation
+So then, if we want to lower bound $\E[C(x)]$ where $x \sim \distrib$ and $C$ is an $\ACZ$ circuit, we simply need to find $\E[f'(x)]$ where $f'$ is the polynomial
+that sends all outputs not equal to 1 to 0. We can see this as
+
+$$
+\E[f'(x)] = \Pr[f'(x) = 1] \leq \Pr[C(x) = 1] = \E[C(x)].
+$$
+
+Cool! So we can maybe find a lower bound. We can also use the same technique to upper bound the expectation by looking at the negation of $C$.
+
+Okay so then, 
+
+\begin{align*}
+\E[f'(x)] = \E\left[\sum_{i \in [k]} (f'_i(x) \text{ mod }p_i) M_i N_i\right] \\
+	 = \sum_{i \in [k]} M_i N_i\E\left[(f'_i(x) \text{ mod }p_i) \right]. \\
+\end{align*}
+
+Then,
+
+<!-- TODO: -->
+$$
+\E\left[(f'_i(x) \text{ mod }p_i) \right] = \sum_{j} 
+$$
 
 ## Appendix-ish
 ### Chat GPT on Linearity of Expectation and Finite Fields
