@@ -117,6 +117,8 @@ const createPdf = (file_path) => {
       macros["\\" + command.name] = command.definition;
     });
 
+		console.log(macros);
+
     const options = {
       throwOnError: false,
       globalGroup: true,
