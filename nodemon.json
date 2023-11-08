@@ -1,0 +1,4 @@
+{
+	"ext": "js, md",
+	"watch": ["src", "research"]
+}

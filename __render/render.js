@@ -7,6 +7,32 @@ const { marked } = require("marked");
 
 const markedKatex = require("marked-katex-extension");
 
+// TODO: for proper numbering, we need to do equation and begin align together!!
+function replaceLatexAlignWithKatex(input) {
+  let equationNumber = 1;
+  const alignRegex = /\\begin{align}([\s\S]*?)\\end{align}/g;
+
+  const replaced = input.replace(
+    alignRegex,
+    (match, alignedEquationsContent) => {
+      // Split the aligned content into separate lines
+      const lines = alignedEquationsContent.trim().split("\\\\");
+      // Add tags and double dollar signs to each line
+      const taggedLines = lines.map((line) => {
+        // Only add a tag if the line is not empty
+        if (line.trim().length > 0) {
+          return `$$\n${line.trim()} \\tag{${equationNumber++}}\n$$`;
+        }
+        return "";
+      });
+      // Join the lines back together, ensuring that each equation is on a new line
+      return taggedLines.join("\n");
+    }
+  );
+
+  return replaced;
+}
+
 function replaceLatexEquationsWithKatex(input) {
   let equationNumber = 1;
   const equationRegex = /\\begin{equation}([\s\S]*?)\\end{equation}/g;
@@ -51,7 +77,6 @@ function extractOutCommands(commandFile) {
 
     commandStartIndex = latex.indexOf("\\newcommand{", index);
   }
-  console.log(commands);
   return commands;
 }
 
@@ -74,7 +99,6 @@ function parseCommand(commandString) {
   let definitionStartIndex = nameMatch.index + nameMatch[0].length;
   let definition = null;
 
-  // console.log(commandString, commandString.length, definitionStartIndex);
   // Find the first non-escaped opening brace after the command name
   while (
     definitionStartIndex < commandString.length &&
@@ -83,7 +107,6 @@ function parseCommand(commandString) {
   ) {
     definitionStartIndex++;
   }
-  console.log(commandString.length, definitionStartIndex);
 
   if (definitionStartIndex < commandString.length) {
     let stack = [definitionStartIndex]; // Push the index of the opening brace
@@ -118,18 +141,17 @@ function parseCommand(commandString) {
  * @param {string} file_path
  * @returns
  */
-const createPdf = (file_path) => {
+const createPdf = (file_path, log=true) => {
   return (async () => {
     const p = path.join(__dirname, "../", file_path);
     const preamblePath = path.join(__dirname, "../", "preamble.tex");
-    console.log(preamblePath);
     const commands = extractOutCommands(preamblePath);
     const macros = {};
     commands.forEach((command) => {
       macros["\\" + command.name] = command.definition;
     });
 
-    console.log(macros);
+    if (log) console.log(macros);
 
     const options = {
       throwOnError: false,
@@ -142,8 +164,9 @@ const createPdf = (file_path) => {
       throw new Error("File is not a markdown file");
     }
     const content = fs.readFileSync(p, "utf8");
-		const contentCleaned = replaceLatexEquationsWithKatex(content);
-    // console.log(md.render(content), cssLatex);
+    const contentCleaned = replaceLatexAlignWithKatex(
+      replaceLatexEquationsWithKatex(content)
+    );
     const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -154,7 +177,7 @@ const createPdf = (file_path) => {
 	<body>
 	   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-		<div>
+		<div style="padding: 4rem; margin: 2rem; font-style: georgia;">
 		${marked.parse(contentCleaned)}
 		</div>
 		</body>
@@ -175,5 +198,7 @@ const createPdf = (file_path) => {
 if (process.argv.length > 2) {
   createPdf(process.argv[2]);
 } else {
-  throw new Error("No path provided");
+  createPdf("research/AC_0_NotPeaked/notes.md", false);
 }
+
+// TODO: \( \) -> $ $ and \[ \] -> $$ $$ and $$ $$ without \n wrap to wrapped

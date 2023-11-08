@@ -17,3 +17,17 @@ $$
 \begin{equation}
   a + b = c
 \end{equation}
+
+
+\begin{equation}
+  a + b = c
+\end{equation}
+
+<!-- TODO: alas & align does not work... -->
+\begin{align}
+  a + b = c \\
+  a + b = c
+\end{align}
+
+<!-- TODO: cref and labels -->
+<!-- \cref{eq:1} and \cref{eq:2}. -->
