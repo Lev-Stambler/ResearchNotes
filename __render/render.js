@@ -6,6 +6,18 @@ const path = require("path");
 const { marked } = require("marked");
 
 const markedKatex = require("marked-katex-extension");
+
+function replaceLatexEquationsWithKatex(input) {
+  let equationNumber = 1;
+  const equationRegex = /\\begin{equation}([\s\S]*?)\\end{equation}/g;
+
+  const replaced = input.replace(equationRegex, (match, equationContent) => {
+    return `$$\n${equationContent.trim()} \\tag{${equationNumber++}}\n$$`;
+  });
+
+  return replaced;
+}
+
 function extractOutCommands(commandFile) {
   const latex = fs.readFileSync(commandFile, "utf8");
   let commands = [];
@@ -117,7 +129,7 @@ const createPdf = (file_path) => {
       macros["\\" + command.name] = command.definition;
     });
 
-		console.log(macros);
+    console.log(macros);
 
     const options = {
       throwOnError: false,
@@ -130,6 +142,7 @@ const createPdf = (file_path) => {
       throw new Error("File is not a markdown file");
     }
     const content = fs.readFileSync(p, "utf8");
+		const contentCleaned = replaceLatexEquationsWithKatex(content);
     // console.log(md.render(content), cssLatex);
     const html = `<!DOCTYPE html>
 <html>
@@ -142,7 +155,7 @@ const createPdf = (file_path) => {
 	   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 		<div>
-		${marked.parse(content)}
+		${marked.parse(contentCleaned)}
 		</div>
 		</body>
 </html>`;
