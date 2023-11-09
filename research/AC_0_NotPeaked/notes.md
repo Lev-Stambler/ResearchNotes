@@ -4,21 +4,30 @@
 
 # Something with Quantum Circuits and Expectation of Post-Processing AC0
 
-## Using Polynomial Factorization and Chinese Remainder Theorem
+### Some Papers/ References
 
-We can get non-trivial upper and lower bounds on the expectation of post-processing $\ACZ$ circuits by heavily relying on the two following papers
+We can get non-trivial upper and lower bounds on the expectation of post-processing $\ACZ$ circuits by relying on the two following papers
 
-- [On Polynomial Approximations to $\ACZ$](https://arxiv.org/pdf/1604.08121.pdf)
-  This paper will allow us to bound the output of the probabilistic polynomial to something **very** nice. Specifically,
-  we get that for any $\mathbf{x} \in \binSet^n$ and $\ACZ$ circuit of size $s$ and degree $d$, $|f(\mathbf{x})| \leq (\log s)^{O(d)} \log(1 / \eps)$! Because we can square $f$ without experiencing too much pain, we will assume that
-  \begin{equation}
-  0 \leq f(x) \leq (\log s)^{O(d)} \log(1 / \eps).
-  \end{equation}
+- [Probabilistic polynomials, AC0 functions and the polynomial-time hierarchy](https://www.sciencedirect.com/science/article/pii/030439759390214E?ref=pdf_download&fr=RR-2&rr=8236c9c25bdf3af9). We can maybe look for better results, but here we have a probabilistic polynomial over $\Z[X_1, \dots, X_n]$ with one sided error $\eps$ and *norm bound* (i.e. the maximum absolute value of the coefficients)
+
+$$
+n^{O(\log (1/\eps) \cdot \log n)}
+$$
+
+on all probabilisitc polynomials.
+Note that this implies that for any probabilist polynomial, $f$, we have that
+
+$$
+f(x_1, \dots, x_n) \leq O(n) \cdot n^{O(\log (1/\eps) \cdot \log n)}
+$$
+
+as we assume that we have $O(n)$ terms in the polynomial. Let $L = O(n) \cdot n^{O(\log (1/\eps) \cdot \log n)}$.
 
 - [Fast polynomial factorization and modular composition](http://users.cms.caltech.edu/~umans/papers/KU08-final.pdf)
-  This is quite a fascinating paper IMO and something that cryptographers are hoping to use (though the parameters there do not quite work out). The key part that we will focus on is **Section 4** (Fast multivariate multipoint evaluation (in any characteristic). Specifically, we only care about the MULTIMODULAR algorithm (on the bottom of page 12 in the box)
+  This is quite a fascinating paper IMO and something that cryptographers are hoping to use (though the parameters there do not quite work out). The key part that we will focus on is **Section 4**. The idea is actually rather simple and will be outlined below. No need to go through the paper as it is doing a lot of other things that we do not need.
 
-Specifically, we have from the CRT (Chinese Remainder Theorem), given any $f(x)$ where $0 \leq f(x) \leq L$,
+### Using CRT
+We have from the CRT (Chinese Remainder Theorem), given any $f(x)$ where $0 \leq f(x) \leq L$,
 
 \begin{align*}
 a_1 = f(x) \mod p_1 \\
@@ -26,9 +35,9 @@ a_2 = f(x) \mod p_2 \\
 \;\;\vdots \\
 a_k = f(x) \mod p_k \\
 \end{align*}
-where $p_1 \cdot p_2 \dots \cdot p_k \geq L$. Note that $k \in O(\log L)$.
+where $p_1 \cdot p_2 \dots \cdot p_k \geq L$, then we can uniquely recover $f(x)$. Note that $k \in O(\log L)$.
 
-Moreover, we can find fixed constants $\{M_i\}, \{K_i\}$ (TODO: please someone check me, from [Wikipedia](<https://en.wikipedia.org/wiki/Chinese_remainder_theorem#:~:text=In%20mathematics%2C%20the%20Chinese%20remainder,are%20pairwise%20coprime%20(no%20two)>)) such that
+Moreover, we can find fixed constants $\{M_i\}, \{N_i\}$ (from [Wikipedia](<https://en.wikipedia.org/wiki/Chinese_remainder_theorem#:~:text=In%20mathematics%2C%20the%20Chinese%20remainder,are%20pairwise%20coprime%20(no%20two)>)) such that
 
 $$
 f(x) = \sum_{i \in [k]} a_i M_i N_i.
@@ -44,8 +53,8 @@ Note that if we have the expectations for $a_i$ we can get the expectation for $
 <!-- TODO: coefficient norm bound??? -->
 
 Say that we have a polynomial $g$ that outputs values in $\Z/p\Z$. Note that
-if $g \in \Z[X]$ but $g(x)$ is norm bounded by $L$, then we can assume that
-$g \in \Z/p\Z$ even if the coefficients are not in $\Z/p\Z$.
+if $g \in \Z[X]$ but $g(x)$ is norm bounded by some $L'$, then we can assume that
+ $g \in \Z/p\Z$ for some $p > L'$.
 
 <!-- TODO: check this above -->
 
@@ -67,11 +76,10 @@ Another note is that this basically means that the total degree of $g'(x)$ is so
 -----------
 ## Back to the main show. Using the above and the CRT
 
-Note that if we want to use the above technique with $g'$ we will have a few issues.
-First, we need to calculate expectations over a polynomial in $\Z/p\Z$. I believe though that this should be possible (see the appendix). We just need to calculate the probability of overflow. This should be fine maybe?
+Note that if we want to use the above technique with $g'$ we will have a major issue.
 
-Second, and the larger problem, if our $p$ is $\text{poly}(\cdot)$ we are in trouble.
-If we want our $\eps$ to be super-polynomially small, then we need to do some tricks.
+If our $p$ is $\text{poly}(n)$ we are in trouble.
+If we want our $\eps$ to have some inverse polynomial error, then we need to do some tricks.
 
 ### CRT and Unique Identification
 
@@ -131,38 +139,15 @@ Cool! So we can find an explicit formula to calculate $\E[g(x)]$. Let $S = \sum_
 \E_{s \sim \distrib}[g(s)] = \sum_{s \in \distrib} \left(\sum_{\ell} M_\ell(s)\right) \mod p \cdot \Pr[s] \\
 = \sum_{s \in \distrib, 0 \leq S < p} \left(\sum_{\ell} M_\ell(s)\right) \cdot \Pr[s] \\
 + \sum_{s \in \distrib,\; p \leq S < 2p} \left(\sum_{\ell} M_\ell(s) - p\right) \cdot \Pr[s] \\
-... + \sum_{s \in \distrib,\; (\ell - 1)p \leq S < \ell p} \left(\sum_{\ell} M_\ell(s) - (\ell - 1)\right) \cdot \Pr[s] \\
-= \sum_{s \in \distrib} \left(\sum_{\ell} M_\ell(s)\right) \cdot \Pr[s] - p \Pr[p \leq S < 2p] \\ - 2p \Pr[2p \leq S < 3p] \dots (\ell - 1)p \Pr[(\ell - 1)p \leq S].
+... + \sum_{s \in \distrib,\; (\ell - 1)p \leq S < \ell p} \left(\sum_{\ell} M_\ell(s) - (\ell - 1)p\right) \cdot \Pr[s] \\
+= \sum_{s \in \distrib} \left(\sum_{\ell} M_\ell(s)\right) \cdot \Pr[s] - p \Pr[p \leq S < 2p] \\ - 2p \Pr[2p \leq S < 3p] \dots (\ell - 1)p \Pr[S \geq (\ell - 1)p].
 \end{align*}
 
-Noting that $\sum_{s \in \distrib} \left(\sum_{\ell} M_\ell(s)\right) \cdot \Pr[s] = \sum_{\ell} \E[M_\ell]$ and that we can approximate all the probabilities above by simply drawing from distribution $\distrib$ a enough time, we can approximate $\E[g(x)]$.
+Noting that $\sum_{s \in \distrib} \left(\sum_{\ell} M_\ell(s)\right) \cdot \Pr[s] = \sum_{\ell} \E[M_\ell]$ and that we can approximate all the probabilities above by simply drawing from distribution $\distrib$ enough times, we can approximate $\E[g(x)]$.
 
+### TODO: show that we can approximate with a polynomial number of samples
 <!-- TODO: detail **exactly** how to do the mod thing -->
+I think for this we need to do 2 things
 
-## Appendix-ish
-
-### Chat GPT on Linearity of Expectation and Finite Fields
-
-The concept of linearity of expectation is a fundamental principle in probability theory that holds true regardless of whether or not the random variables are independent. The principle states that for any two random variables \( X \) and \( Y \), the expectation of their sum is equal to the sum of their expectations:
-
-$$ \mathbb{E}[X + Y] = \mathbb{E}[X] + \mathbb{E}[Y] $$
-
-This principle can be extended to any finite number of random variables. For instance, if \( X_1, X_2, ..., X_n \) are random variables (not necessarily independent), then:
-
-$$ \mathbb{E}\left[\sum_{i=1}^{n} X_i\right] = \sum\_{i=1}^{n} \mathbb{E}[X_i] $$
-
-When you mention "for a field modulo 1," it seems like you might be talking about values being taken modulo 1, which essentially means you're looking at the fractional part of a number (since taking a number modulo 1 gives you the fractional component of that number). In a probabilistic context, if you're dealing with random variables \( X_i \) where you consider \( X_i \mod 1 \), then you're interested in the expectation of the fractional parts of these variables.
-
-Even in such a scenario, linearity of expectation still holds. If \( X \) and \( Y \) are random variables, then the expectation of their sum modulo 1 is:
-
-$$ \mathbb{E}[(X + Y) \mod 1] = \mathbb{E}[X \mod 1 + Y \mod 1 - \mathbb{I}\{X \mod 1 + Y \mod 1 \geq 1\}] $$
-
-where \( \mathbb{I} \) is the indicator function which is 1 if \( X \mod 1 + Y \mod 1 \geq 1 \) and 0 otherwise. This equation accounts for the "wrap around" effect of the modulo operation.
-
-However, the linearity of expectation principle directly would mean:
-
-$$ \mathbb{E}[(X + Y) \mod 1] = \mathbb{E}[X \mod 1] + \mathbb{E}[Y \mod 1] - \mathbb{E}[\mathbb{I}\{X \mod 1 + Y \mod 1 \geq 1\}] $$
-
-In the above equation, the expectations on the right-hand side might not necessarily be straightforward to calculate due to the indicator function. However, the linearity itself does not guarantee that the expected value of the modulo operation is the modulo of the expected values; these are not equivalent because the modulo operation is not a linear transformation.
-
-Therefore, while linearity of expectation holds in general, applying it within the context of modular arithmetic requires careful consideration of the wraparound effect that the modulo operation introduces. When you calculate expectations modulo 1, you must consider the fact that the operation may transform the distribution of your random variables in a nonlinear way, especially around the wraparound point.
+1. Show that we can approximate $\E[f_i(x)]$ to be within $\eps$ of the true value with a polynomial number of samples in $1/\eps$.
+2. And then show that M_i, N_i are polynomial in $1/\eps$ to ensure that we are not "magnifying" errors too much.
