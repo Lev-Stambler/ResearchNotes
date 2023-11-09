@@ -4,6 +4,16 @@
 
 # Something with Quantum Circuits and Expectation of Post-Processing AC0
 
+## Problems that still Need to be Solved
+The below probably has bugs, but one thing that I do not quite know how to estimate is
+
+$$
+\Pr[n p \leq \sum_{\ell} c_\ell \text{Mon}(\ell) < (n + 1) p]
+$$
+
+where $p, n \in \Z$ and $\text{Mon}(\ell)$ is a random variable representing a multi-variate monomial with coefficient one and values always in between 0 and 1. $c_\ell$ is some set of coefficients.
+
+
 ### Some Papers/ References
 
 We can get non-trivial upper and lower bounds on the expectation of post-processing $\ACZ$ circuits by relying on the two following papers
@@ -143,7 +153,10 @@ Cool! So we can find an explicit formula to calculate $\E[g(x)]$. Let $S = \sum_
 = \sum_{s \in \distrib} \left(\sum_{\ell} M_\ell(s)\right) \cdot \Pr[s] - p \Pr[p \leq S < 2p] \\ - 2p \Pr[2p \leq S < 3p] \dots (\ell - 1)p \Pr[S \geq (\ell - 1)p].
 \end{align*}
 
-Noting that $\sum_{s \in \distrib} \left(\sum_{\ell} M_\ell(s)\right) \cdot \Pr[s] = \sum_{\ell} \E[M_\ell]$ and that we can approximate all the probabilities above by simply drawing from distribution $\distrib$ enough times, we can approximate $\E[g(x)]$.
+Note that $\sum_{s \in \distrib} \left(\sum_{\ell} M_\ell(s)\right) \cdot \Pr[s] = \sum_{\ell} \E[M_\ell]$.
+
+Unfortunately, I do not quite know how to approximate the probabilities above (that $p \leq S < 2p$ and so on). It seems like we may be able to get something like a bound here via a generalization of Chebyshev's inequality to higher order moments
+but this seems tenuous at best.
 
 ### TODO: show that we can approximate with a polynomial number of samples
 <!-- TODO: detail **exactly** how to do the mod thing -->
