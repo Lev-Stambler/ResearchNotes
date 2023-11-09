@@ -209,9 +209,8 @@ const createPdf = (file_path, log = true) => {
     const htmlPath = file_path.replace(new RegExp(".md$"), ".html");
     const renderedMDPath = file_path.replace(new RegExp(".md$"), ".rendered.md");
     fs.writeFileSync(htmlPath, html);
-    // const renderedMD = `<iframe srcdoc="${html}" style="width: 100%; height: 100%; border: none;"></iframe>`
-    const renderedMD = `<iframe src="/notes.html" style="width: 100%; height: 100%; border: none;"></iframe>`
-    fs.writeFileSync(renderedMDPath, renderedMD);
+    // const renderedMD = `## Preview the notes [here](${htmlPath})`;
+    // fs.writeFileSync(renderedMDPath, renderedMD);
 
     // const pdf = await mdToPdf({ path: p }).catch(console.error);
     // if (pdf) {
